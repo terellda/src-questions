@@ -1,4 +1,4 @@
-package com.wso2.custom.usermgt;
+package com.wso2.carbon.custom.user.store.manager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,27 +20,32 @@ import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
+import org.wso2.carbon.utils.Secret;
+import org.jasypt.util.password.StrongPasswordEncryptor;
 
-public class OhsuBannerCustomUserStoreManager extends JDBCUserStoreManager {
-    private static Log log = LogFactory.getLog(OhsuBannerCustomUserStoreManager.class);
 
-    public OhsuBannerCustomUserStoreManager(org.wso2.carbon.user.api.RealmConfiguration realmConfig,
-                               Map<String, Object> properties,
-                               ClaimManager claimManager,
-                               ProfileConfigurationManager profileManager,
-                               UserRealm realm, Integer tenantId)
+public class CustomUserStoreManager extends JDBCUserStoreManager {
+
+    private static Log log = LogFactory.getLog(CustomUserStoreManager.class);
+
+    public CustomUserStoreManager(org.wso2.carbon.user.api.RealmConfiguration realmConfig,
+                                  Map<String, Object> properties,
+                                  ClaimManager claimManager,
+                                  ProfileConfigurationManager profileManager,
+                                  UserRealm realm, Integer tenantId)
             throws UserStoreException {
         super(realmConfig, properties, claimManager, profileManager, realm, tenantId, false);
         log.info("OhsuBannerCustomUserStoreManager initialized...");
     }
 
-    public OhsuBannerCustomUserStoreManager() {
-        log.info("OhsuBannerCustomUserStoreManager initialized...");
+    public CustomUserStoreManager() {
+        //String sql = this.realmConfig.getUserStoreProperty(JDBCRealmConstants.SELECT_USER);
+        //log.info("User Query " + sql);
+        log.info("ohsuCustomUserStoreManager constructor was called");
     }
 
     @Override
-    public boolean doAuthenticate(String userName, Object credential) throws UserStoreException
-    {
+    public boolean doAuthenticate(String userName, Object credential) throws UserStoreException {
         Connection dbConnection = null;
         ResultSet rs = null;
         PreparedStatement prepStmt = null;
@@ -48,36 +53,37 @@ public class OhsuBannerCustomUserStoreManager extends JDBCUserStoreManager {
         String password = (String) credential;
         boolean isAuthed = false;
 
-        if (userName != null && credential != null)
-        {
+        log.info("ohsuCustomUserStoreManager doAuthenticate was called");
+
+        if (userName != null && credential != null) {
             if (CarbonConstants.REGISTRY_ANONNYMOUS_USERNAME.equals(userName)) {
                 log.error("Anonymous user trying to login");
                 return isAuthed;
             }
 
-            try
-            {
+            try {
                 dbConnection = getDBConnection();
                 dbConnection.setAutoCommit(false);
                 sqlstmt = realmConfig.getUserStoreProperty(JDBCRealmConstants.SELECT_USER);
 
                 prepStmt = dbConnection.prepareStatement(sqlstmt);
                 log.info(prepStmt);
+                /*
                 prepStmt.setString(1, userName);
 
                 rs = prepStmt.executeQuery();
 
-                if (rs.next())
-                {
+                if (rs.next()) {
                     //spriden_id, gobtpac_pidm, gobtpac_pin, gobtpac_salt
                     log.info("PIN_HASH = " + rs.getString("GOBTPC_PIN"));
-                    /*
+
                     String storedPassword = rs.getString("GOBTPC_PIN");
                     if ((storedPassword != null) && (storedPassword.trim().equals(password))) {
                         isAuthed = true;
                     }
-                    */
+
                 }
+                 */
             } catch (SQLException e) {
                 throw new UserStoreException("Authentication Failure. Using sql :" + sqlstmt);
             } finally {
@@ -91,7 +97,22 @@ public class OhsuBannerCustomUserStoreManager extends JDBCUserStoreManager {
         }
         return isAuthed;
     }
-
+/*
+    @Override
+    protected String preparePassword(Object password, String saltValue) throws UserStoreException {
+        if (password != null) {
+            String candidatePassword = String.copyValueOf(((Secret) password).getChars());
+            // ignore saltValue for the time being
+            log.info("Generating hash value using jasypt...");
+            return (String) password;
+            //return passwordEncryptor.encryptPassword(password);
+        } else {
+            log.error("Password cannot be null");
+            throw new UserStoreException("Authentication Failure");
+        }
+    }
+*/
+/*
     @Override
     public boolean doCheckExistingUser(String userName) throws UserStoreException {
         String sqlStmt = realmConfig.getUserStoreProperty(JDBCRealmConstants.GET_IS_USER_EXISTING);
@@ -106,7 +127,8 @@ public class OhsuBannerCustomUserStoreManager extends JDBCUserStoreManager {
         // not supporting this by sample user store manager.
         return null;
     }
-
+*/
+/*
     @Override
     public org.wso2.carbon.user.api.Properties getDefaultUserStoreProperties() {
         Properties properties = new Properties();
@@ -148,4 +170,6 @@ public class OhsuBannerCustomUserStoreManager extends JDBCUserStoreManager {
             }
         }
     }
+
+ */
 }
